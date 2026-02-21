@@ -44,6 +44,7 @@ export default function ProfileList() {
     sortBy: "createdAt",
     orderBy: "desc",
   });
+  console.log(import.meta.env.VITE_API_URL);
 
   const loadProfiles = async () => {
     setLoading(true);
