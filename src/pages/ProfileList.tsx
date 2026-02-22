@@ -66,7 +66,7 @@ export default function ProfileList() {
   }, [params]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa profile này?")) return;
+    if (!confirm("Are you sure you want to delete this profile?")) return;
     try {
       await profilesApi.deleteProfile(id);
       loadProfiles();
@@ -85,7 +85,7 @@ export default function ProfileList() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Profiles</h1>
-          <p className="text-muted-foreground">Quản lý danh sách người dùng</p>
+          <p className="text-muted-foreground">Manage user profiles</p>
         </div>
         <div className="flex gap-2">
           {currentUserId && (
@@ -99,7 +99,7 @@ export default function ProfileList() {
           )}
           <Button onClick={() => navigate("/profiles/create")}>
             <Plus className="mr-2 h-4 w-4" />
-            Tạo Profile Mới
+            Create New Profile
           </Button>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function ProfileList() {
         <div className="grid grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Nam</CardTitle>
+              <CardTitle className="text-sm font-medium">Male</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.male}</div>
@@ -117,7 +117,7 @@ export default function ProfileList() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Nữ</CardTitle>
+              <CardTitle className="text-sm font-medium">Female</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.female}</div>
@@ -125,7 +125,7 @@ export default function ProfileList() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Khác</CardTitle>
+              <CardTitle className="text-sm font-medium">Other</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.other}</div>
@@ -142,7 +142,7 @@ export default function ProfileList() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Tìm kiếm theo tên hoặc email..."
+                  placeholder="Search by name or email..."
                   className="pl-9"
                   value={params.search}
                   onChange={(e) => handleSearch(e.target.value)}
@@ -160,13 +160,13 @@ export default function ProfileList() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Giới tính" />
+                <SelectValue placeholder="Gender" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="male">Nam</SelectItem>
-                <SelectItem value="female">Nữ</SelectItem>
-                <SelectItem value="other">Khác</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -177,12 +177,12 @@ export default function ProfileList() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sắp xếp" />
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="createdAt">Ngày tạo</SelectItem>
-                <SelectItem value="name">Tên</SelectItem>
-                <SelectItem value="age">Tuổi</SelectItem>
+                <SelectItem value="createdAt">Created Date</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="age">Age</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -202,11 +202,11 @@ export default function ProfileList() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
-                    <TableHead>Tên</TableHead>
-                    <TableHead>Tuổi</TableHead>
-                    <TableHead>Giới tính</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>Gender</TableHead>
                     <TableHead>Bio</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -233,10 +233,10 @@ export default function ProfileList() {
                       <TableCell>{profile.age}</TableCell>
                       <TableCell>
                         {profile.gender === "male"
-                          ? "Nam"
+                          ? "Male"
                           : profile.gender === "female"
-                            ? "Nữ"
-                            : "Khác"}
+                            ? "Female"
+                            : "Other"}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
                         {profile.bio}
@@ -277,7 +277,7 @@ export default function ProfileList() {
               {/* Pagination */}
               <div className="flex items-center justify-between mt-4">
                 <div className="text-sm text-muted-foreground">
-                  Trang {params.page} / {totalPages}
+                  Page {params.page} / {totalPages}
                 </div>
                 <div className="space-x-2">
                   <Button
@@ -288,7 +288,7 @@ export default function ProfileList() {
                       setParams({ ...params, page: params.page! - 1 })
                     }
                   >
-                    Trước
+                    Previous
                   </Button>
                   <Button
                     variant="outline"
@@ -298,7 +298,7 @@ export default function ProfileList() {
                       setParams({ ...params, page: params.page! + 1 })
                     }
                   >
-                    Sau
+                    Next
                   </Button>
                 </div>
               </div>

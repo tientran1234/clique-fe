@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { profilesApi, type CreateProfileDto } from "@/lib/api";
 import { AxiosError } from "axios";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +17,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+
+const profileSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must not exceed 50 characters"),
+  age: z
+    .number()
+    .min(18, "Age must be at least 18")
+    .max(100, "Age must not exceed 100"),
+  gender: z.enum(["male", "female", "other"], {
+    message: "Please select a gender",
+  }),
+  bio: z
+    .string()
+    .min(10, "Bio must be at least 10 characters")
+    .max(500, "Bio must not exceed 500 characters"),
+});
 
 export default function ProfileForm() {
   const navigate = useNavigate();
@@ -21,14 +44,26 @@ export default function ProfileForm() {
   const isEdit = !!id;
 
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState<CreateProfileDto>({
-    email: "",
-    name: "",
-    age: 18,
-    gender: "male",
-    bio: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+  } = useForm<CreateProfileDto>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+      age: 18,
+      gender: "male",
+      bio: "",
+    },
   });
+
+  const gender = watch("gender");
+  const bio = watch("bio");
 
   useEffect(() => {
     if (isEdit) {
@@ -43,37 +78,34 @@ export default function ProfileForm() {
     try {
       const profile = await profilesApi.getProfile(id);
       if (profile) {
-        setFormData({
-          email: profile.email,
-          name: profile.name,
-          age: profile.age,
-          gender: profile.gender,
-          bio: profile.bio,
-        });
+        setValue("email", profile.email);
+        setValue("name", profile.name);
+        setValue("age", profile.age);
+        setValue("gender", profile.gender);
+        setValue("bio", profile.bio);
       }
     } catch (error) {
       console.error("Failed to load profile:", error);
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const onSubmit = async (data: CreateProfileDto) => {
     try {
       if (isEdit && id) {
-        await profilesApi.updateProfile(id, formData);
+        await profilesApi.updateProfile(id, data);
+        toast.success("Profile updated successfully!");
       } else {
-        await profilesApi.createProfile(formData);
+        await profilesApi.createProfile(data);
+        toast.success("Profile created successfully!");
       }
       navigate("/profiles");
     } catch (error) {
       console.error("Failed to submit:", error);
       const axiosError = error as AxiosError<{ message?: string }>;
-      alert(axiosError?.response?.data?.message || "Có lỗi xảy ra");
-    } finally {
-      setSubmitting(false);
+      toast.error(axiosError?.response?.data?.message || "An error occurred");
     }
   };
 
@@ -93,68 +125,59 @@ export default function ProfileForm() {
         onClick={() => navigate("/profiles")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Quay lại
+        Back
       </Button>
 
       <Card>
         <CardHeader>
           <CardTitle>
-            {isEdit ? "Chỉnh sửa Profile" : "Tạo Profile Mới"}
+            {isEdit ? "Edit Profile" : "Create New Profile"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
-                required
                 disabled={isEdit}
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                {...register("email")}
               />
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Tên *</Label>
-              <Input
-                id="name"
-                required
-                minLength={2}
-                maxLength={50}
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
+              <Label htmlFor="name">Name *</Label>
+              <Input id="name" {...register("name")} />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="age">Tuổi *</Label>
+              <Label htmlFor="age">Age *</Label>
               <Input
                 id="age"
                 type="number"
-                required
-                min={18}
-                max={100}
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: parseInt(e.target.value) })
-                }
+                {...register("age", { valueAsNumber: true })}
               />
+              {errors.age && (
+                <p className="text-sm text-destructive">{errors.age.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="gender">Giới tính *</Label>
+              <Label htmlFor="gender">Gender *</Label>
               <Select
-                value={formData.gender}
+                value={gender}
                 onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    gender: value as "male" | "female" | "other",
+                  setValue("gender", value as "male" | "female" | "other", {
+                    shouldValidate: true,
                   })
                 }
               >
@@ -162,29 +185,31 @@ export default function ProfileForm() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Nam</SelectItem>
-                  <SelectItem value="female">Nữ</SelectItem>
-                  <SelectItem value="other">Khác</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.gender && (
+                <p className="text-sm text-destructive">
+                  {errors.gender.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="bio">Bio *</Label>
               <textarea
                 id="bio"
-                required
-                minLength={10}
-                maxLength={500}
                 rows={4}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={formData.bio}
-                onChange={(e) =>
-                  setFormData({ ...formData, bio: e.target.value })
-                }
+                {...register("bio")}
               />
+              {errors.bio && (
+                <p className="text-sm text-destructive">{errors.bio.message}</p>
+              )}
               <p className="text-xs text-muted-foreground">
-                {formData.bio.length}/500 ký tự
+                {bio?.length || 0}/500 characters
               </p>
             </div>
 
@@ -194,13 +219,13 @@ export default function ProfileForm() {
                 variant="outline"
                 onClick={() => navigate("/profiles")}
               >
-                Hủy
+                Cancel
               </Button>
-              <Button type="submit" disabled={submitting}>
-                {submitting && (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isEdit ? "Cập nhật" : "Tạo mới"}
+                {isEdit ? "Update" : "Create"}
               </Button>
             </div>
           </form>

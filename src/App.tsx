@@ -6,6 +6,7 @@ import MatchesPage from "./pages/MatchesPage";
 import SchedulingPage from "./pages/SchedulingPage";
 import { Button } from "./components/ui/button";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { Toaster } from "sonner";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/scheduling/:matchId" element={<SchedulingPage />} />
           </Routes>
         </div>
+        <Toaster position="top-center" richColors />
       </BrowserRouter>
     </ErrorBoundary>
   );

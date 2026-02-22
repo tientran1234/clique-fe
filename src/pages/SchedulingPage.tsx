@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   availabilityApi,
   matchesApi,
@@ -33,18 +36,79 @@ interface TimeSlot {
   endTime: string;
 }
 
+const now = new Date();
+const threeWeeksFromNow = new Date();
+threeWeeksFromNow.setDate(threeWeeksFromNow.getDate() + 21);
+
+const timeSlotSchema = z.object({
+  startTime: z
+    .string()
+    .min(1, "Please select a start time")
+    .refine((val) => {
+      const date = new Date(val);
+      return date >= now;
+    }, "Cannot set availability for past dates")
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= threeWeeksFromNow;
+    }, "Please set availability within the next 3 weeks"),
+  endTime: z.string().min(1, "Please select an end time"),
+}).refine(
+  (data) => {
+    if (!data.startTime || !data.endTime) return true;
+    const start = new Date(data.startTime);
+    const end = new Date(data.endTime);
+    return end > start;
+  },
+  {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  }
+).refine(
+  (data) => {
+    if (!data.startTime || !data.endTime) return true;
+    const start = new Date(data.startTime);
+    const end = new Date(data.endTime);
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    return durationHours >= 1;
+  },
+  {
+    message: "Each time slot must be at least 1 hour long",
+    path: ["endTime"],
+  }
+);
+
+const schedulingSchema = z.object({
+  slots: z.array(timeSlotSchema).min(1, "Please add at least one time slot"),
+});
+
 export default function SchedulingPage() {
   const navigate = useNavigate();
   const { matchId } = useParams<{ matchId: string }>();
   const { userId: currentUserId } = useCurrentUser();
-  const [slots, setSlots] = useState<TimeSlot[]>([
-    { startTime: "", endTime: "" },
-  ]);
+  
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<{ slots: TimeSlot[] }>({
+    resolver: zodResolver(schedulingSchema),
+    defaultValues: {
+      slots: [{ startTime: "", endTime: "" }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "slots",
+  });
+
   const [existingAvailabilities, setExistingAvailabilities] = useState<
     Availability[]
   >([]);
   const [loadingAvailabilities, setLoadingAvailabilities] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [validatingMatch, setValidatingMatch] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -136,85 +200,16 @@ export default function SchedulingPage() {
   };
 
   const handleAddSlot = () => {
-    setSlots([...slots, { startTime: "", endTime: "" }]);
+    append({ startTime: "", endTime: "" });
   };
 
   const handleRemoveSlot = (index: number) => {
-    setSlots(slots.filter((_, i) => i !== index));
+    if (fields.length > 1) {
+      remove(index);
+    }
   };
 
-  const handleSlotChange = (
-    index: number,
-    field: keyof TimeSlot,
-    value: string,
-  ) => {
-    const newSlots = [...slots];
-    newSlots[index][field] = value;
-    setSlots(newSlots);
-  };
-
-  const validateSlots = (slots: TimeSlot[]): string | null => {
-    const validSlots = slots.filter((s) => s.startTime && s.endTime);
-    if (validSlots.length === 0) {
-      return "Please add at least one valid time slot";
-    }
-
-    const now = new Date();
-    const threeWeeksFromNow = new Date();
-    threeWeeksFromNow.setDate(threeWeeksFromNow.getDate() + 21);
-
-    for (const slot of validSlots) {
-      const startDate = new Date(slot.startTime);
-      const endDate = new Date(slot.endTime);
-
-      // Check valid dates
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        return "Invalid date format detected";
-      }
-
-      // Check start time is before end time
-      if (startDate >= endDate) {
-        return "End time must be after start time";
-      }
-
-      // Check minimum duration (1 hour)
-      const durationMs = endDate.getTime() - startDate.getTime();
-      const durationHours = durationMs / (1000 * 60 * 60);
-      if (durationHours < 1) {
-        return "Each time slot must be at least 1 hour long";
-      }
-
-      // Check date is not in the past
-      if (startDate < now) {
-        return "Cannot set availability for past dates";
-      }
-
-      // Check date is within 3 weeks
-      if (startDate > threeWeeksFromNow) {
-        return "Please set availability within the next 3 weeks";
-      }
-    }
-
-    // Check for overlapping slots
-    for (let i = 0; i < validSlots.length; i++) {
-      for (let j = i + 1; j < validSlots.length; j++) {
-        const start1 = new Date(validSlots[i].startTime);
-        const end1 = new Date(validSlots[i].endTime);
-        const start2 = new Date(validSlots[j].startTime);
-        const end2 = new Date(validSlots[j].endTime);
-
-        if (start1 < end2 && start2 < end1) {
-          return "Time slots cannot overlap with each other";
-        }
-      }
-    }
-
-    return null;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: { slots: TimeSlot[] }) => {
     if (!matchId) {
       toast.error("Match ID is required");
       return;
@@ -226,28 +221,30 @@ export default function SchedulingPage() {
       return;
     }
 
-    // Validate slots with comprehensive checks
-    const validationError = validateSlots(slots);
-    if (validationError) {
-      toast.error(validationError);
-      return;
+    const validSlots = data.slots.filter((s) => s.startTime && s.endTime);
+
+    // Check for overlapping slots
+    for (let i = 0; i < validSlots.length; i++) {
+      for (let j = i + 1; j < validSlots.length; j++) {
+        const start1 = new Date(validSlots[i].startTime);
+        const end1 = new Date(validSlots[i].endTime);
+        const start2 = new Date(validSlots[j].startTime);
+        const end2 = new Date(validSlots[j].endTime);
+
+        if (start1 < end2 && start2 < end1) {
+          toast.error("Time slots cannot overlap with each other");
+          return;
+        }
+      }
     }
 
-    const validSlots = slots.filter((s) => s.startTime && s.endTime);
-
     try {
-      setLoading(true);
-      const data: CreateAvailabilityDto = {
+      const requestData: CreateAvailabilityDto = {
         userId: currentUserId,
         matchId,
         slots: validSlots.map((slot) => {
           const startDate = new Date(slot.startTime);
           const endDate = new Date(slot.endTime);
-
-          // Validate dates
-          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            throw new Error("Invalid date format");
-          }
 
           return {
             date: startDate.toISOString(),
@@ -257,13 +254,13 @@ export default function SchedulingPage() {
         }),
       };
 
-      const response = await availabilityApi.create(data);
+      const response = await availabilityApi.create(requestData);
 
       // Reload existing availabilities
       await loadExistingAvailabilities();
 
       // Reset form
-      setSlots([{ startTime: "", endTime: "" }]);
+      reset({ slots: [{ startTime: "", endTime: "" }] });
 
       // If common slot found, show it
       if (response.commonSlot) {
@@ -279,8 +276,6 @@ export default function SchedulingPage() {
       toast.error(
         axiosError.response?.data?.message || "Failed to set availability",
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -431,45 +426,48 @@ export default function SchedulingPage() {
             <CardTitle>Add New Time Slots</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                {slots.map((slot, index) => (
-                  <div key={index} className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <Label htmlFor={`start-${index}`}>Start Time</Label>
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex gap-3 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor={`slots.${index}.startTime`}>Start Time</Label>
                       <Input
-                        id={`start-${index}`}
+                        id={`slots.${index}.startTime`}
                         type="datetime-local"
-                        value={slot.startTime}
                         min={getMinDateTime()}
                         max={getMaxDateTime()}
-                        onChange={(e) =>
-                          handleSlotChange(index, "startTime", e.target.value)
-                        }
-                        required
+                        {...register(`slots.${index}.startTime`)}
                       />
+                      {errors.slots?.[index]?.startTime && (
+                        <p className="text-sm text-destructive">
+                          {errors.slots[index].startTime?.message}
+                        </p>
+                      )}
                     </div>
 
-                    <div className="flex-1">
-                      <Label htmlFor={`end-${index}`}>End Time</Label>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor={`slots.${index}.endTime`}>End Time</Label>
                       <Input
-                        id={`end-${index}`}
+                        id={`slots.${index}.endTime`}
                         type="datetime-local"
-                        value={slot.endTime}
-                        min={slot.startTime || getMinDateTime()}
+                        min={getMinDateTime()}
                         max={getMaxDateTime()}
-                        onChange={(e) =>
-                          handleSlotChange(index, "endTime", e.target.value)
-                        }
-                        required
+                        {...register(`slots.${index}.endTime`)}
                       />
+                      {errors.slots?.[index]?.endTime && (
+                        <p className="text-sm text-destructive">
+                          {errors.slots[index].endTime?.message}
+                        </p>
+                      )}
                     </div>
 
-                    {slots.length > 1 && (
+                    {fields.length > 1 && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
+                        className="mt-8"
                         onClick={() => handleRemoveSlot(index)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -478,6 +476,12 @@ export default function SchedulingPage() {
                   </div>
                 ))}
               </div>
+
+              {errors.slots && !Array.isArray(errors.slots) && (
+                <p className="text-sm text-destructive">
+                  {errors.slots.message}
+                </p>
+              )}
 
               <Button
                 type="button"
@@ -489,8 +493,8 @@ export default function SchedulingPage() {
                 Add Another Time Slot
               </Button>
 
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...
