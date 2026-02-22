@@ -200,6 +200,154 @@ npm run lint         # Run ESLint
 ### Issue: CORS errors
 **Solution**: Backend must allow frontend origin in CORS config.
 
+---
+
+## 📚 System Architecture & Logic
+
+### 🏗️ Data Storage Strategy
+
+**Backend**: PostgreSQL database on Render
+- All data is persisted in PostgreSQL (not local storage)
+- Database survives deployments and restarts
+- Production-ready with ACID guarantees
+
+**Why PostgreSQL over Local Storage?**
+- ✅ Multi-user support
+- ✅ Data persistence across devices
+- ✅ Scalable for production
+- ✅ Relational integrity with foreign keys
+
+### 🔄 Match Logic Explanation
+
+**How Matching Works:**
+
+```
+1. User A likes User B
+   → Create Like record: { senderId: A, receiverId: B }
+
+2. User B likes User A  
+   → Create Like record: { senderId: B, receiverId: A }
+
+3. Backend automatically detects:
+   - Check if Like(A→B) exists
+   - Check if Like(B→A) exists
+   - If BOTH exist → Create Match(A, B)
+
+4. Match is created only once
+   - Unique constraint: (userAId, userBId)
+   - Sorted order: always smaller ID first
+```
+
+**Implementation:**
+- Backend checks mutual likes on every new like
+- Match is created atomically in database transaction
+- Frontend polls or fetches matches to display "It's a Match!"
+
+### 📅 Availability & Time Slot Matching Logic
+
+**How Finding Common Slots Works:**
+
+```
+1. User A sets availability:
+   - Match ID: X
+   - Day: Monday
+   - Time: Evening (18:00-22:00)
+
+2. User B sets availability:
+   - Match ID: X
+   - Day: Monday  
+   - Time: Evening (18:00-22:00)
+
+3. System finds overlap:
+   - Query: WHERE matchId = X 
+            AND dayOfWeek = same
+            AND timeSlot = same
+   - If found → "You have a date on Monday, Evening"
+   - If not → "No common time slots"
+```
+
+**Time Slot Definition:**
+- Morning: 06:00-12:00
+- Afternoon: 12:00-18:00
+- Evening: 18:00-22:00
+- Night: 22:00-02:00
+
+**Current Implementation:**
+- Uses day of week (Monday-Sunday) 
+- Uses predefined time slots (4 slots per day)
+- Finds first matching slot between two users
+
+### 🔮 Future Improvements (If More Time)
+
+**1. Specific Date Selection (3 weeks ahead)**
+- Current: Select "Monday" generically
+- Improved: Select specific date (e.g., "Feb 24, 2026")
+- Benefits: More precise scheduling, actual calendar dates
+
+**2. Custom Time Range**
+- Current: Fixed slots (Morning, Afternoon, etc.)
+- Improved: Choose exact time (e.g., "14:30-16:00")
+- Benefits: More flexibility, better matches user schedules
+
+**3. Multiple Availability Slots**
+- Current: One slot at a time
+- Improved: Select multiple slots in one go
+- Benefits: Faster input, more availability = higher match chance
+
+**4. Push Notifications**
+- Notify when someone likes you
+- Notify when match occurs
+- Notify when common slot is found
+
+**5. Chat System**
+- Message matched users
+- Coordinate date details
+- Share location/venue
+
+---
+
+## 💡 Suggested New Features
+
+### 1️⃣ Smart Matching Algorithm
+**What**: AI-powered matching based on:
+- Common interests (from bio keywords)
+- Age compatibility (configurable range)
+- Activity level (how often they use app)
+- Geographic distance (if location added)
+
+**Why**: 
+- Increases quality matches
+- Reduces time browsing
+- Better user experience
+- Higher conversion rate
+
+### 2️⃣ Video Profile Introduction
+**What**: 15-second video profile clip
+- Shows personality better than text
+- Auto-play when browsing profiles
+- Optional feature
+
+**Why**:
+- Differentiates from text-only apps
+- Builds trust and authenticity
+- Modern UX trend (TikTok generation)
+- Reduces catfishing
+
+### 3️⃣ Date Activity Suggestions
+**What**: After finding common time slot, suggest:
+- Coffee shop nearby
+- Restaurant recommendations
+- Activity ideas (movie, park, museum)
+- Integration with Google Maps
+
+**Why**:
+- Reduces friction after match
+- Users don't know where to meet
+- Increases actual date conversion
+- Monetization opportunity (partner venues)
+
+---
+
 ## 🤝 Contributing
 
 This is a technical assessment project for Clique83.com.
