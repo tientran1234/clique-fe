@@ -1,361 +1,164 @@
-# Clique Dating App - Frontend 💖
+# Clique Mini Dating App - Frontend 💖
 
-> A modern dating application built with React, TypeScript, and Vite for Clique83.com technical assessment.
+> Mini Dating App được xây dựng cho bài test kỹ thuật vị trí Web Developer Intern tại Clique83.com
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://clique-fe.vercel.app)
-[![Backend API](https://img.shields.io/badge/API-active-blue)](https://clique-pro.onrender.com/api)
+## 🔗 Live Demo
 
-## 📱 Demo
+- **Frontend**: https://clique-fe.vercel.app
+- **Backend API**: https://clique-pro.onrender.com/api
 
-- **Frontend**: [https://clique-fe.vercel.app](https://clique-fe.vercel.app)
-- **Backend API**: [https://clique-pro.onrender.com/api](https://clique-pro.onrender.com/api)
-- **API Docs**: [https://clique-pro.onrender.com/api](https://clique-pro.onrender.com/api) (Swagger)
+## 🛠️ Công nghệ sử dụng
 
-## ✨ Features
+- **React 18** + TypeScript
+- **Vite** - Build tool
+- **TailwindCSS** - Styling
+- **shadcn/ui** - UI components
+- **React Router** - Navigation
+- **React Hook Form + Zod** - Form validation
 
-### 👤 Profile Management
-- ✅ Create and manage user profiles
-- ✅ View profile details (name, age, gender, bio)
-- ✅ Update and delete profiles
-- ✅ Select "current user" for testing
-
-### 💙 Like System
-- ✅ Browse and like other profiles
-- ✅ View sent and received likes
-- ✅ Real-time like notifications
-
-### 💑 Matching
-- ✅ Automatic match creation when both users like each other
-- ✅ View all matches with match details
-- ✅ Match timeline and history
-
-### 📅 Availability Scheduling
-- ✅ Set availability for meetings
-- ✅ Choose day of week and time slots
-- ✅ Find mutual availability with matches
-- ✅ Manage and delete availability
-
-## 🛠️ Tech Stack
-
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: TailwindCSS
-- **UI Components**: shadcn/ui
-- **State Management**: React Hooks
-- **HTTP Client**: Fetch API
-- **Routing**: React Router v6
-- **Deployment**: Vercel
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Backend API running (see [clique-pro](../clique-pro))
-
-### Installation
+## 🚀 Cài đặt nhanh
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd clique-fe
-
-# Install dependencies
+# Cài đặt dependencies
 npm install
 
-# Start development server
+# Setup môi trường
+cp .env.example .env
+# Chỉnh sửa VITE_API_URL để trỏ đến backend
+
+# Chạy development
 npm run dev
 ```
 
-App will be available at: `http://localhost:5173`
+Ứng dụng chạy tại: http://localhost:5173
 
-### Environment Variables
+## ✅ Tính năng đã hoàn thành
 
-Create a `.env` file:
+### Phần A - Quản lý Profile ✅
 
-```env
-VITE_API_URL=http://localhost:3000/api  # Local backend
-# or
-VITE_API_URL=https://clique-pro.onrender.com/api  # Production
-```
+- Tạo profile với tên, tuổi, giới tính, bio, email
+- CRUD đầy đủ (Create, Read, Update, Delete)
+- Form validation với Zod
+- Tìm kiếm và lọc profiles
 
-## 📁 Project Structure
+### Phần B - Hệ thống Like & Match ✅
+
+- Xem và like profiles
+- Tự động tạo match khi cả 2 người like nhau
+- Hiển thị thông báo "It's a Match"
+- Xem tất cả matches
+
+### Phần C - Đặt lịch hẹn ✅
+
+- Chọn khung giờ rảnh trong 3 tuần tới
+- Nhiều khung giờ cho mỗi match
+- Tự động phát hiện khung giờ trùng đầu tiên
+- Hiển thị ngày hẹn hoặc thông báo "Không có khung giờ trùng"
+
+## 📁 Cấu trúc dự án
 
 ```
 clique-fe/
 ├── src/
-│   ├── components/      # Reusable UI components
-│   │   └── ui/         # shadcn/ui components
-│   ├── pages/          # Page components
-│   │   ├── ProfilesPage.tsx
+│   ├── components/ui/    # shadcn/ui components
+│   ├── pages/            # Các page components
+│   │   ├── ProfileList.tsx
+│   │   ├── ProfileForm.tsx
 │   │   ├── LikePage.tsx
 │   │   ├── MatchesPage.tsx
-│   │   └── AvailabilityPage.tsx
-│   ├── lib/            # Utilities
-│   ├── assets/         # Static assets
-│   ├── App.tsx         # Main app component
-│   └── main.tsx        # Entry point
-├── public/             # Public assets
-├── index.html          # HTML template
-└── vite.config.ts      # Vite configuration
+│   │   └── SchedulingPage.tsx
+│   ├── lib/
+│   │   ├── api.ts        # API client & types
+│   │   └── utils.ts
+│   └── App.tsx
+└── package.json
 ```
 
-## 📖 Usage Guide
+## 🎯 Tính năng bổ sung
 
-### 1. Create Profiles
-1. Go to `/profiles`
-2. Click "Tạo Profile Mới" (Create New Profile)
-3. Fill in: name, email, age, gender, bio
-4. Submit form
+- ✅ **Lọc nâng cao**: Lọc theo giới tính, độ tuổi, tìm kiếm theo tên/email
+- ✅ **Sắp xếp**: Sắp xếp profiles theo ngày tạo, tên hoặc tuổi
+- ✅ **Statistics Dashboard**: Thống kê phân bố giới tính
+- ✅ **Validation thời gian thực**: Phản hồi form ngay lập tức
+- ✅ **Toast Notifications**: Thông báo lỗi/thành công thân thiện
+- ✅ **Loading States**: Hiển thị loading cho tất cả async operations
+- ✅ **Responsive Design**: Hoạt động trên mobile và desktop
+- ✅ **Xử lý Edge Cases**: Xử lý khung giờ trùng, ngày quá khứ, validation
 
-### 2. Select Current User
-1. In profiles list, find your profile
-2. Click "Use as Me" button
-3. This sets you as the active user for testing
+## 📖 Chi tiết triển khai
 
-### 3. Like Other Profiles
-1. Go to `/like`
-2. Browse available profiles
-3. Click "Like" on profiles you're interested in
-4. View sent/received likes
+### 1. Tổ chức hệ thống
 
-### 4. View Matches
-1. Go to `/matches`
-2. When both users like each other, a match is created
-3. View match details and mutual information
+- **Pages**: Mỗi tính năng là một page component riêng (ProfileList, LikePage, MatchesPage, SchedulingPage)
+- **API Layer**: API client tập trung trong `lib/api.ts` với TypeScript types
+- **Components**: Các UI components tái sử dụng từ shadcn/ui
+- **State**: Local state với React hooks, currentUser trong localStorage
 
-### 5. Set Availability
-1. Go to `/matches`
-2. Click "Set Availability" on a match
-3. Select day of week (Monday-Sunday)
-4. Choose time slot (Morning, Afternoon, Evening, Night)
-5. Find mutual availability with your match
+### 2. Lưu trữ dữ liệu
 
-## 🎨 UI Components
+- **Backend**: Tất cả dữ liệu được lưu trong PostgreSQL qua REST API
+- **Local**: Chỉ "currentUserId" được lưu trong localStorage để test
+- **Không dùng local storage** cho profiles, likes, matches - tất cả qua API calls
 
-Using [shadcn/ui](https://ui.shadcn.com/) components:
-- Button, Card, Input, Select
-- Dialog, Alert, Badge
-- Table, Tabs, Toast
+### 3. Logic Match (Frontend View)
 
-## 📦 Build & Deploy
-
-### Build for Production
-
-```bash
-npm run build
+```typescript
+// Khi user click nút "Like":
+1. POST /api/likes → Backend tạo Like record
+2. Backend kiểm tra nếu receiver đã like sender
+3. Nếu có mutual like → Backend tự động tạo Match
+4. Response trả về { isMatch: true, matchId: "..." }
+5. Frontend hiển thị "🎉 It's a Match!" và chuyển đến /matches
 ```
 
-Output in `dist/` folder.
+### 4. Logic tìm slot trùng (Frontend View)
 
-### Deploy to Vercel
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
+```typescript
+// Khi cả 2 users set availability:
+1. POST /api/availability với các khung giờ của user
+2. Backend so sánh tất cả slots từ cả 2 users
+3. Tìm slot trùng đầu tiên (cùng ngày + giờ trùng nhau)
+4. Trả về { commonSlot: { date, time }, message: "..." }
+5. Frontend hiển thị: "Lịch hẹn: [ngày] lúc [giờ]"
+6. Nếu không trùng: Hiển thị "Không tìm thấy khung giờ chung"
 ```
 
-Or connect GitHub repo to Vercel for auto-deployment.
+### 5. Cải thiện trong tương lai
 
-### Important: SPA Routing
+Nếu có thêm thời gian, em sẽ thêm:
 
-The `vercel.json` file ensures all routes redirect to `index.html` for client-side routing:
+- **WebSocket/SSE**: Thông báo thời gian thực cho likes và matches mới
+- **Upload ảnh**: Ảnh profile với Cloudinary/S3
+- **Hệ thống Chat**: Nhắn tin trong app cho matched users
+- **Matching nâng cao**: Thuật toán dựa trên sở thích, vị trí
+- **Unit Tests**: Jest + React Testing Library
+- **E2E Tests**: Playwright cho các user flows quan trọng
 
-```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
+### 6. Đề xuất tính năng cho sản phẩm
 
-## 🔧 Development
+#### 1. **Video giới thiệu (30-60s)**
 
-### Available Scripts
+**Lý do**: Bio văn bản có thể gây hiểu nhầm. Video thể hiện tính cách thật, giọng nói và năng lượng. Tăng độ tin cậy và giảm tình trạng giả mạo. Tương tự như video profiles của Bumble.
 
-```bash
-npm run dev          # Start dev server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-```
+#### 2. **Interest Tags & Điểm tương thích**
 
-### Code Style
+**Lý do**: Cho phép users gắn tags sở thích (âm nhạc, thể thao, ăn uống, du lịch). Hiển thị điểm tương thích trên profiles. Giúp tìm matches phù hợp hơn ngoài việc chỉ nhìn ảnh.
 
-- TypeScript for type safety
-- ESLint for code quality
-- Prettier for formatting (optional)
+#### 3. **Tính năng an toàn (Report, Block, Xác minh Video)**
 
-## 🐛 Troubleshooting
+**Lý do**: Thiết yếu cho sự an toàn của người dùng. Xác minh video selfie giảm fake profiles. Tính năng report/block bảo vệ khỏi quấy rối. Xây dựng lòng tin trong cộng đồng.
 
-### Issue: 404 on page reload
-**Solution**: Ensure `vercel.json` exists with rewrites configuration.
+## 📝 Ghi chú
 
-### Issue: API connection fails
-**Solution**: Check `VITE_API_URL` in `.env` and ensure backend is running.
+- Không có hệ thống authentication (theo yêu cầu - tập trung vào core features)
+- Nút "Use as Me" mô phỏng việc chọn user để test
+- Tất cả dữ liệu lưu trữ qua backend database
+- Validation và error handling production-ready
 
-### Issue: CORS errors
-**Solution**: Backend must allow frontend origin in CORS config.
+## 🤝 Liên hệ
+
+Nếu có câu hỏi về implementation, vui lòng xem code comments hoặc liên hệ với em.
 
 ---
 
-## 📚 System Architecture & Logic
-
-### 🏗️ Data Storage Strategy
-
-**Backend**: PostgreSQL database on Render
-- All data is persisted in PostgreSQL (not local storage)
-- Database survives deployments and restarts
-- Production-ready with ACID guarantees
-
-**Why PostgreSQL over Local Storage?**
-- ✅ Multi-user support
-- ✅ Data persistence across devices
-- ✅ Scalable for production
-- ✅ Relational integrity with foreign keys
-
-### 🔄 Match Logic Explanation
-
-**How Matching Works:**
-
-```
-1. User A likes User B
-   → Create Like record: { senderId: A, receiverId: B }
-
-2. User B likes User A  
-   → Create Like record: { senderId: B, receiverId: A }
-
-3. Backend automatically detects:
-   - Check if Like(A→B) exists
-   - Check if Like(B→A) exists
-   - If BOTH exist → Create Match(A, B)
-
-4. Match is created only once
-   - Unique constraint: (userAId, userBId)
-   - Sorted order: always smaller ID first
-```
-
-**Implementation:**
-- Backend checks mutual likes on every new like
-- Match is created atomically in database transaction
-- Frontend polls or fetches matches to display "It's a Match!"
-
-### 📅 Availability & Time Slot Matching Logic
-
-**How Finding Common Slots Works:**
-
-```
-1. User A sets availability:
-   - Match ID: X
-   - Day: Monday
-   - Time: Evening (18:00-22:00)
-
-2. User B sets availability:
-   - Match ID: X
-   - Day: Monday  
-   - Time: Evening (18:00-22:00)
-
-3. System finds overlap:
-   - Query: WHERE matchId = X 
-            AND dayOfWeek = same
-            AND timeSlot = same
-   - If found → "You have a date on Monday, Evening"
-   - If not → "No common time slots"
-```
-
-**Time Slot Definition:**
-- Morning: 06:00-12:00
-- Afternoon: 12:00-18:00
-- Evening: 18:00-22:00
-- Night: 22:00-02:00
-
-**Current Implementation:**
-- Uses day of week (Monday-Sunday) 
-- Uses predefined time slots (4 slots per day)
-- Finds first matching slot between two users
-
-### 🔮 Future Improvements (If More Time)
-
-**1. Specific Date Selection (3 weeks ahead)**
-- Current: Select "Monday" generically
-- Improved: Select specific date (e.g., "Feb 24, 2026")
-- Benefits: More precise scheduling, actual calendar dates
-
-**2. Custom Time Range**
-- Current: Fixed slots (Morning, Afternoon, etc.)
-- Improved: Choose exact time (e.g., "14:30-16:00")
-- Benefits: More flexibility, better matches user schedules
-
-**3. Multiple Availability Slots**
-- Current: One slot at a time
-- Improved: Select multiple slots in one go
-- Benefits: Faster input, more availability = higher match chance
-
-**4. Push Notifications**
-- Notify when someone likes you
-- Notify when match occurs
-- Notify when common slot is found
-
-**5. Chat System**
-- Message matched users
-- Coordinate date details
-- Share location/venue
-
----
-
-## 💡 Suggested New Features
-
-### 1️⃣ Smart Matching Algorithm
-**What**: AI-powered matching based on:
-- Common interests (from bio keywords)
-- Age compatibility (configurable range)
-- Activity level (how often they use app)
-- Geographic distance (if location added)
-
-**Why**: 
-- Increases quality matches
-- Reduces time browsing
-- Better user experience
-- Higher conversion rate
-
-### 2️⃣ Video Profile Introduction
-**What**: 15-second video profile clip
-- Shows personality better than text
-- Auto-play when browsing profiles
-- Optional feature
-
-**Why**:
-- Differentiates from text-only apps
-- Builds trust and authenticity
-- Modern UX trend (TikTok generation)
-- Reduces catfishing
-
-### 3️⃣ Date Activity Suggestions
-**What**: After finding common time slot, suggest:
-- Coffee shop nearby
-- Restaurant recommendations
-- Activity ideas (movie, park, museum)
-- Integration with Google Maps
-
-**Why**:
-- Reduces friction after match
-- Users don't know where to meet
-- Increases actual date conversion
-- Monetization opportunity (partner venues)
-
----
-
-## 🤝 Contributing
-
-This is a technical assessment project for Clique83.com.
-
-## 📄 License
-
-MIT
-
-## 👨‍💻 Author
-
-Built for Clique83.com Web Developer Intern position.
+Built with ❤️ cho Clique83.com Technical Assessment
